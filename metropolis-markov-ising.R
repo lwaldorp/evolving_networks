@@ -1,6 +1,7 @@
 #####################################################
 # Posterior sampling mcmc using Metropolis algorithm
 #####################################################
+library(bayesplot)
 
 # prior: Gamma(3,1)
 # likelihood: prod(sum_r(1/(1+exp(-theta0-theta*r)))*choose(nu,r)*x_n^r*(1-x_n)^(nu-r))
@@ -46,9 +47,18 @@ x <- numeric()
 y <- numeric()
 theta.0 <- runif(1,0,2)
 theta0.0 <-  runif(1,0,2)
+nsim <- 100
+rho_nrun <- array(NA,dim=c(nsim,nrun))
+n <- 20
+pe <- 0.4
+
+nrho <- c(1:nsim)
+nrho[1] <- runif(1,0,1)
+for(i in 2:nsim) nrho[i] <- (1/n)*rbinom(1,n,psi.rho(nrho[i-1]/n,n=round(pe*n,0),theta=theta.0, theta0=theta0.0,pe=pe)) #rbinom(1,n,phi(nrho[i-1]/n,n,p))
+rho <- nrho
 theta.cur <- metropolis(theta=theta.0,theta0=theta0.0,x=rho,alpha=1,alpha0=1)
 for(j in 1:nrun) {
-  theta.cur <- metropolis(theta=theta.cur[1],theta0=theta.cur[2], x=rho,alpha=1,alpha0=1,mu1=1,sigma1=1,mu=-2,sigma=1,pe=0.4)
+  theta.cur <- metropolis(theta=theta.cur[1],theta0=theta.cur[2], x=rho,alpha=1,alpha0=1)
   x[j] <- theta.cur[1]
   y[j] <- theta.cur[2]
 }
@@ -79,7 +89,7 @@ mcmc_areas(Z,pars="theta",prob=0.95)
 
 
 # Groot data
-# library(mgm)
+library(mgm)
 groot <- symptom_data #in package mgm
 mood <- apply(groot$data[,c(1:12)],1,sum) # mood
 symp <- apply(groot$data[,c(13:16)],1,sum) # symptoms, agitate, worry etc
@@ -103,7 +113,7 @@ x <- numeric()
 y <- numeric()
 theta.0 <- 0.5
 theta0.0 <- -0.5
-theta.cur <- metropolis(theta=theta.cur[1],theta0=theta.cur[2], x=xg,alpha=1,alpha0=1,mu1=0.7,sigma1=1,mu=-2,sigma=1,pe=0.4)
+theta.cur <- metropolis(theta=theta.cur[1],theta0=theta.cur[2], x=xg,alpha=1,alpha0=1)
 # metropolis(theta=theta.0,theta0=theta0.0,x=xg,alpha=2,alpha0=5,pe=0.3)
 for(j in 1:nrun) {
   theta.cur <- metropolis(theta=theta.cur[1],theta0=theta.cur[2], x=rho,alpha=1,alpha0=1)
